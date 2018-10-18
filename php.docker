@@ -1,0 +1,22 @@
+FROM php:7.1-fpm
+
+RUN apt-get update && apt-get install -y libmcrypt-dev mysql-client git zip supervisor cron zlib1g-dev && docker-php-ext-install pdo_mysql zip && pecl install xdebug
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+# Add crontab file in the cron directory
+ADD ./php-conf/crontab /etc/cron.d/hello-cron
+
+# Give execution rights on the cron job
+RUN chmod 0644 /etc/cron.d/hello-cron
+
+# Create the log file to be able to run tail
+RUN touch /var/log/cron.log
+RUN crontab /etc/cron.d/hello-cron
+
+COPY ./php-conf/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+COPY ./php-conf/entrypoint.sh /
+ENTRYPOINT /entrypoint.sh
+
+WORKDIR /var/www/app
+

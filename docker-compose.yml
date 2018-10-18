@@ -1,0 +1,40 @@
+version: '2'
+
+services:
+  web:
+    build:
+      context: ./
+      dockerfile: web.docker
+    volumes:
+      - ./www:/var/www
+    ports:
+      - "80:80"
+    restart: always
+  php:
+    build:
+      context: ./
+      dockerfile: php.docker
+    volumes:
+      - ./www/app:/var/www/app
+    links:
+      - web:dev.app.com.br
+    environment:
+      - "DB_PORT=3306"
+      - "DB_HOST=db"
+    restart: always  
+  db:
+    build:
+      context: ./
+      dockerfile: db.docker
+    environment:
+      - "MYSQL_ROOT_PASSWORD=root"
+      - "MYSQL_DATABASE=app_db"
+    ports:
+      - "33061:3306"
+    volumes:
+      - ../backup/db:/backup
+      - data-volume:/var/lib/mysql
+    restart: always
+
+volumes:
+  data-volume:
